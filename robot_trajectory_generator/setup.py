@@ -31,6 +31,8 @@ setup(
             'trajectory_generator_example = robot_trajectory_generator.trajectory_generator_example:main',
             'test_case_publisher = robot_trajectory_generator.test_case_publisher:main',
             'catmull_rom_generator = robot_trajectory_generator.catmull_rom_generator:main',
+            'velocity_profiler = robot_trajectory_generator.velocity_profiler:main',
+            'pure_pursuit_controller = robot_trajectory_generator.pure_pursuit_controller:main',
         ],
     },
 )
