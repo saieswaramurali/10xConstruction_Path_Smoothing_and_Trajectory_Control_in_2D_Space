@@ -74,6 +74,10 @@ class PurePursuitController(Node):
         self.current_trajectory = None
         self.current_pose = None
         self.goal_reached = False
+        self.current_waypoint_index = 0  # Track which waypoint we're targeting
+        self.waypoint_reached_distance = 0.3  # Distance to consider waypoint reached
+        self.current_waypoint_index = 0  # Track progress through path
+        self.min_progress_threshold = 0.3  # Must progress 30% before checking goal
         
         # Subscribers
         self.trajectory_sub = self.create_subscription(
@@ -120,6 +124,7 @@ class PurePursuitController(Node):
         
         self.current_trajectory = msg
         self.goal_reached = False
+        self.current_waypoint_index = 0  # Reset progress tracker
         
         self.get_logger().info(f'Received new trajectory with {len(msg.poses)} points')
         self.get_logger().info('Starting path following...')
@@ -224,12 +229,17 @@ class PurePursuitController(Node):
         return linear_vel, angular_vel
     
     def control_loop(self):
-        """Main control loop (called at 20 Hz)"""
+        """Main control loop with sequential waypoint tracking (called at 20 Hz)"""
         # Check if we have trajectory and odometry
         if self.current_trajectory is None or self.current_pose is None:
             return
         
+        # If goal reached, keep publishing zero velocity to ensure robot stays stopped
         if self.goal_reached:
+            cmd = Twist()
+            cmd.linear.x = 0.0
+            cmd.angular.z = 0.0
+            self.cmd_vel_pub.publish(cmd)
             return
         
         # Get robot position
@@ -241,21 +251,39 @@ class PurePursuitController(Node):
         quaternion = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
         _, _, robot_yaw = euler_from_quaternion(quaternion)
         
-        # Find closest point on trajectory
-        closest_idx = self.find_closest_point(self.current_trajectory, robot_x, robot_y)
-        
-        # Check if goal is reached
-        goal_pose = self.current_trajectory.poses[-1]
-        goal_x = goal_pose.pose.position.x
-        goal_y = goal_pose.pose.position.y
-        dist_to_goal = self.get_distance(robot_x, robot_y, goal_x, goal_y)
-        
-        if dist_to_goal < self.goal_tolerance:
-            # Goal reached!
-            self.get_logger().info('🎯 Goal Reached!')
+        # Check if reached end of trajectory
+        if self.current_waypoint_index >= len(self.current_trajectory.poses):
+            self.get_logger().info('[GOAL] Complete Path Finished!')
             self.stop_robot()
             self.goal_reached = True
             return
+        
+        # Get current target waypoint
+        current_target = self.current_trajectory.poses[self.current_waypoint_index]
+        target_x = current_target.pose.position.x
+        target_y = current_target.pose.position.y
+        dist_to_target = self.get_distance(robot_x, robot_y, target_x, target_y)
+        
+        # Check if reached current waypoint -> move to next
+        if dist_to_target < self.waypoint_reached_distance:
+            self.current_waypoint_index += 1
+            
+            # Check if we just finished the last waypoint
+            if self.current_waypoint_index >= len(self.current_trajectory.poses):
+                self.get_logger().info('[GOAL] All Waypoints Completed!')
+                self.stop_robot()
+                self.goal_reached = True
+                return
+            else:
+                # Still more waypoints to go
+                self.get_logger().info(
+                    f'[OK] Waypoint {self.current_waypoint_index}/{len(self.current_trajectory.poses)} reached!'
+                )
+            # Continue to next waypoint without returning
+        
+        # Find closest point for lookahead (but don't go backwards)
+        closest_idx = self.find_closest_point(self.current_trajectory, robot_x, robot_y)
+        closest_idx = max(closest_idx, self.current_waypoint_index)
         
         # Dynamic lookahead (optional: scale with velocity)
         lookahead = self.lookahead_distance
@@ -300,17 +328,20 @@ class PurePursuitController(Node):
         
         if self._log_counter % 20 == 0:
             self.get_logger().info(
-                f'Distance to goal: {dist_to_goal:.2f}m | '
-                f'Linear: {linear_vel:.2f}m/s | '
-                f'Angular: {angular_vel:.2f}rad/s'
+                f'WP {self.current_waypoint_index+1}/{len(self.current_trajectory.poses)} | '
+                f'Dist: {dist_to_target:.2f}m | '
+                f'V: {linear_vel:.2f}m/s | '
+                f'W: {angular_vel:.2f}rad/s'
             )
     
     def stop_robot(self):
-        """Send zero velocity command"""
-        cmd = Twist()
-        cmd.linear.x = 0.0
-        cmd.angular.z = 0.0
-        self.cmd_vel_pub.publish(cmd)
+        """Stop the robot by publishing zero velocities."""
+        stop_msg = Twist()
+        # Publish multiple times to ensure it's received
+        for _ in range(5):
+            self.cmd_vel_publisher.publish(stop_msg)
+            time.sleep(0.05)  # Small delay between publications
+        self.get_logger().info('[STOP] Robot stopped')
 
 
 def main(args=None):

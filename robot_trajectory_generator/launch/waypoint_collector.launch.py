@@ -1,5 +1,39 @@
 #!/usr/bin/env python3
 
+"""
+Waypoint Collector Launch File
+
+Description:
+    This launch file starts the waypoint collector node which listens to
+    /clicked_point topic from RViz's "Publish Point" tool or from the
+    test_case_publisher node. It collects waypoints and publishes them
+    as a nav_msgs/Path message on the /waypoints topic.
+
+Nodes Launched:
+    - waypoint_collector: Collects clicked points and publishes waypoints
+
+Parameters:
+    - frame_id (str): Frame ID for waypoints (default: 'odom')
+    - max_waypoints (int): Maximum number of waypoints to collect (default: 100)
+    - default_z (float): Default z coordinate for waypoints (default: 0.0)
+
+Topics:
+    Subscribes to:
+        - /clicked_point (geometry_msgs/PointStamped): Input waypoints
+    Publishes to:
+        - /waypoints (nav_msgs/Path): Collected waypoints as path
+
+Usage:
+    ros2 launch robot_trajectory_generator waypoint_collector.launch.py
+    
+    # With custom parameters:
+    ros2 launch robot_trajectory_generator waypoint_collector.launch.py \
+        frame_id:=map max_waypoints:=50
+
+Author: Robot Trajectory Generator Team
+Date: 2025
+"""
+
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument

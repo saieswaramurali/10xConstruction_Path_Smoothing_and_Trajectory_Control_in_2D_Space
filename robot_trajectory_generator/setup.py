@@ -33,6 +33,7 @@ setup(
             'catmull_rom_generator = robot_trajectory_generator.catmull_rom_generator:main',
             'velocity_profiler = robot_trajectory_generator.velocity_profiler:main',
             'pure_pursuit_controller = robot_trajectory_generator.pure_pursuit_controller:main',
+            'trajectory_analyzer = robot_trajectory_generator.trajectory_analyzer:main',
         ],
     },
 )

@@ -184,7 +184,7 @@ class CatmullRomTrajectoryGenerator(Node):
             # Calculate path metrics
             path_length = np.sum(np.sqrt(np.sum(np.diff(self.smooth_trajectory, axis=0)**2, axis=1)))
             
-            self.get_logger().info(f'✓ Trajectory generated!')
+            self.get_logger().info(f'[OK] Trajectory generated!')
             self.get_logger().info(f'  - Input waypoints: {len(self.current_waypoints)}')
             self.get_logger().info(f'  - Output points: {len(self.smooth_trajectory)}')
             self.get_logger().info(f'  - Path length: {path_length:.2f} meters')

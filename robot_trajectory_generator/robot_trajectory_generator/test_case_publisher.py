@@ -58,6 +58,24 @@ class TestCasePublisher(Node):
     
     # ==================== WAYPOINT GENERATORS ====================
     
+    def ensure_start_at_origin(self, waypoints):
+        """
+        Ensure path starts at (0,0) - robot's starting position
+        Adds (0,0) as first point if the path doesn't start there
+        """
+        if not waypoints or len(waypoints) == 0:
+            return waypoints
+        
+        first_point = waypoints[0]
+        # Check if first point is close to origin
+        distance_to_origin = np.sqrt(first_point[0]**2 + first_point[1]**2)
+        
+        if distance_to_origin > 0.1:  # Not at origin
+            # Add origin as starting point
+            return [(0.0, 0.0)] + waypoints
+        
+        return waypoints
+    
     def line_waypoints(self, n=5):
         return [(float(i), 0.0) for i in range(n)]
     
@@ -74,19 +92,22 @@ class TestCasePublisher(Node):
                 (width/2, float(-height)), (0.0, 0.0)]
     
     def circle_waypoints(self, radius=5, points=20):
-        return [(radius*np.cos(2*np.pi*i/points), radius*np.sin(2*np.pi*i/points)) 
-                for i in range(points+1)]
+        waypoints = [(radius*np.cos(2*np.pi*i/points), radius*np.sin(2*np.pi*i/points)) 
+                     for i in range(points+1)]
+        return self.ensure_start_at_origin(waypoints)
     
     def figure8_waypoints(self, radius=5, points=40):
         t = np.linspace(0, 2*np.pi, points+1)
-        return [(radius*np.sin(ti), radius*np.sin(ti)*np.cos(ti)) for ti in t]
+        waypoints = [(radius*np.sin(ti), radius*np.sin(ti)*np.cos(ti)) for ti in t]
+        return self.ensure_start_at_origin(waypoints)
     
     def s_curve_waypoints(self, width=10, height=5, points=30):
         t = np.linspace(0, np.pi, points)
-        return [(width*(ti/np.pi), height*np.sin(ti)) for ti in t]
+        waypoints = [(width*(ti/np.pi), height*np.sin(ti)) for ti in t]
+        return self.ensure_start_at_origin(waypoints)
     
     def spiral_waypoints(self, turns=3, points_per_turn=20, spacing=1):
-        waypoints = []
+        waypoints = [(0.0, 0.0)]  # Start at origin
         for t in np.linspace(0, 2*np.pi*turns, points_per_turn*turns):
             r = spacing * t / (2*np.pi)
             waypoints.append((r*np.cos(t), r*np.sin(t)))
@@ -109,14 +130,14 @@ class TestCasePublisher(Node):
             r = outer_radius if i % 2 == 0 else inner_radius
             waypoints.append((r*np.cos(angle), r*np.sin(angle)))
         waypoints.append(waypoints[0])
-        return waypoints
+        return self.ensure_start_at_origin(waypoints)
     
     def hexagon_waypoints(self, size=5):
         waypoints = []
         for i in range(7):
             angle = i * np.pi / 3
             waypoints.append((size*np.cos(angle), size*np.sin(angle)))
-        return waypoints
+        return self.ensure_start_at_origin(waypoints)
     
     def U_turn_waypoints(self, length=8, width=4):
         return [(0.0, 0.0), (0.0, float(length)), (float(width), float(length)), 
@@ -149,7 +170,8 @@ class TestCasePublisher(Node):
     
     def chicane(self):
         """Racing chicane - alternating sharp turns"""
-        return [(0.0, 0.0), (2.0, 2.0), (4.0, -2.0), (6.0, 2.0), (8.0, -2.0), (10.0, 0.0)]
+        waypoints = [(0.0, 0.0), (2.0, 2.0), (4.0, -2.0), (6.0, 2.0), (8.0, -2.0), (10.0, 0.0)]
+        return waypoints
     
     def warehouse_path(self):
         """Warehouse navigation with tight corners"""
@@ -182,7 +204,7 @@ class TestCasePublisher(Node):
             List of (x, y) tuples entered by user
         """
         print("\n" + "="*70)
-        print(" "*15 + "📝 MANUAL WAYPOINT ENTRY 📝")
+        print(" "*15 + " MANUAL WAYPOINT ENTRY ")
         print("="*70)
         print("\nEnter waypoints one by one. You can:")
         print("  • Type coordinates as: x,y  (e.g., '2.5,3.0')")
@@ -200,13 +222,13 @@ class TestCasePublisher(Node):
                 
                 if user_input == 'done':
                     if len(waypoints) < 2:
-                        print("⚠️  You need at least 2 waypoints. Please add more.")
+                        print("[WARNING] You need at least 2 waypoints. Please add more.")
                         continue
-                    print(f"\n✓ Total waypoints entered: {len(waypoints)}")
+                    print(f"\n[OK] Total waypoints entered: {len(waypoints)}")
                     break
                 
                 elif user_input == 'cancel':
-                    print("\n❌ Cancelled manual entry.")
+                    print("\n[CANCEL] Cancelled manual entry.")
                     return []
                 
                 elif user_input == 'show':
@@ -222,19 +244,19 @@ class TestCasePublisher(Node):
                     # Parse x,y coordinates
                     parts = user_input.split(',')
                     if len(parts) != 2:
-                        print("❌ Invalid format. Use: x,y (e.g., '2.5,3.0')")
+                        print("[ERROR] Invalid format. Use: x,y (e.g., '2.5,3.0')")
                         continue
                     
                     x = float(parts[0].strip())
                     y = float(parts[1].strip())
                     
                     waypoints.append((x, y))
-                    print(f"   ✓ Added: ({x:.2f}, {y:.2f})")
+                    print(f"   [OK] Added: ({x:.2f}, {y:.2f})")
             
             except ValueError:
-                print("❌ Invalid numbers. Please use format: x,y (e.g., '2.5,3.0')")
+                print("[ERROR] Invalid numbers. Please use format: x,y (e.g., '2.5,3.0')")
             except KeyboardInterrupt:
-                print("\n\n⚠️  Interrupted. Cancelling manual entry.")
+                print("\n\n[WARNING] Interrupted. Cancelling manual entry.")
                 return []
         
         return waypoints
@@ -272,7 +294,7 @@ class TestCasePublisher(Node):
             # Wait before next waypoint
             time.sleep(delay)
         
-        self.get_logger().info('✓ All waypoints published!')
+        self.get_logger().info('[OK] All waypoints published!')
     
     def display_menu(self):
         """Display the test case selection menu"""
@@ -288,7 +310,7 @@ class TestCasePublisher(Node):
         print("-"*70)
         print("  0. Exit")
         print("="*70)
-        print("\n💡 TIPS:")
+        print("\n[TIPS]:")
         print("   • Type '20' for manual waypoint entry (type your own coordinates!)")
         print("   • Add 'm' to mirror any path (e.g., '1m' for mirrored Square)")
         print("="*70)
@@ -329,7 +351,7 @@ class TestCasePublisher(Node):
                         name = "Custom (Manual Entry)"
                     
                     mirror_text = " (MIRRORED)" if mirror else ""
-                    print(f"\n✓ Selected: {name}{mirror_text}")
+                    print(f"\n[OK] Selected: {name}{mirror_text}")
                     print(f"  Number of waypoints: {len(waypoints)}")
                     
                     # Show preview with mirroring applied if requested
@@ -343,9 +365,9 @@ class TestCasePublisher(Node):
                     confirm = input(f"\n  Publish these waypoints? (y/n): ").strip().lower()
                     
                     if confirm == 'y':
-                        print(f"\n📤 Publishing waypoints for '{name}'{mirror_text}...")
+                        print(f"\n[PUBLISH] Publishing waypoints for '{name}'{mirror_text}...")
                         self.publish_waypoints(waypoints, delay=0.3, mirror=mirror)
-                        print(f"\n✅ Done! Check RViz to see the path.")
+                        print(f"\n[DONE] Done! Check RViz to see the path.")
                         
                         cont = input("\n  Publish another test case? (y/n): ").strip().lower()
                         if cont != 'y':
@@ -353,13 +375,13 @@ class TestCasePublisher(Node):
                     else:
                         print("  Cancelled.")
                 else:
-                    print(f"\n❌ Invalid choice: {choice_num}")
+                    print(f"\n Invalid choice: {choice_num}")
                     print("   Please select a number from the menu.")
             
             except ValueError:
-                print("\n❌ Please enter a valid number (optionally followed by 'm' for mirror).")
+                print("\n Please enter a valid number (optionally followed by 'm' for mirror).")
             except KeyboardInterrupt:
-                print("\n\n⚠️  Interrupted by user. Exiting...")
+                print("\n\n Interrupted by user. Exiting...")
                 break
             except Exception as e:
                 self.get_logger().error(f'Error: {str(e)}')
@@ -371,7 +393,7 @@ def main(args=None):
     node = TestCasePublisher()
     
     print("\n" + "="*70)
-    print(" "*15 + "🎯 TEST CASE PUBLISHER 🎯")
+    print(" "*15 + "[TEST CASE PUBLISHER]")
     print("="*70)
     print("\nThis tool publishes predefined waypoints to /clicked_point topic")
     print("Make sure the waypoint_collector node is running!")
