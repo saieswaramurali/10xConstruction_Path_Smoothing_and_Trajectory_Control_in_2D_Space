@@ -1,37 +1,56 @@
 # Robot Trajectory Generator - Waypoint Collector
 
-This package provides a waypoint collection system for robot trajectory generation using RViz.
+This package provides a complete trajectory generation system for robot navigation using RViz and Catmull-Rom splines.
 
 ## Features
 
 - **Subscribe to RViz clicked points** (`/clicked_point`)
+- **19 Predefined test cases** with interactive selection
+- **Y-axis mirroring** to flip paths (left↔right)
+- **Catmull-Rom trajectory generation** (best for sharp turns)
 - **Visualize waypoints** in RViz with numbered markers
-- **Publish waypoints** as a Path message (`/waypoints`)
-- **Clear waypoints** via service call
+- **Publish smooth trajectories** for robot navigation
+- **Single command launch** - opens everything in separate terminals
 
-## Quick Start
+## 🚀 Super Quick Start
 
-### 1. Build the package
+### 1. Build the package (one time only)
 
 ```bash
-cd /home/sai/Desktop/smooth_nav
+cd ~/Desktop/smooth_nav
 colcon build --packages-select robot_trajectory_generator
 source install/setup.bash
 ```
 
-### 2. Launch the waypoint collector
+### 2. Launch everything with ONE command
 
 ```bash
-ros2 launch robot_trajectory_generator waypoint_collector.launch.py
+ros2 launch robot_trajectory_generator complete_system.launch.py
 ```
 
-Or run the node directly:
+This opens 3 terminals automatically:
+- **Terminal 1:** Robot Simulator (Gazebo + RViz)
+- **Terminal 2:** Trajectory System (Waypoint Collector + Catmull-Rom Generator)
+- **Terminal 3:** Shape Selector ⭐ **USE THIS ONE!**
 
-```bash
-ros2 run robot_trajectory_generator waypoint_collector
+### 3. Select a shape
+
+In **Terminal 3**, type a number:
+
+```
+1  - Square (start with this!)
+2  - Triangle
+3  - Circle
+4  - Figure-8
+5  - Zigzag
+...and 14 more!
 ```
 
-### 3. Set up RViz
+**Want to mirror?** Add `m` after the number:
+- `1` = Normal square (turns left)
+- `1m` = Mirrored square (turns right!)
+
+## Test Cases Available
 
 1. Open RViz (if not already running)
 2. Add the following displays:

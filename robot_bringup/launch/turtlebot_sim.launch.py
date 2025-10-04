@@ -39,11 +39,11 @@ def generate_launch_description():
         ])
     )
     
-    # Get the RViz config file path
+    # Get the RViz config file path - using custom trajectory display config
     rviz_config_file = PathJoinSubstitution([
-        FindPackageShare('turtlebot3_gazebo'),
+        FindPackageShare('robot_bringup'),
         'rviz',
-        'tb3_gazebo.rviz'
+        'display.rviz'
     ])
     
     # Launch RViz2
