@@ -1,0 +1,67 @@
+# ROS2 Build Artifacts
+build/
+install/
+log/
+
+# Colcon build files
+.colcon_install_layout
+*.egg-info/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+*.pyc
+
+# C++
+*.o
+*.a
+*.so
+*.exe
+*.out
+*.app
+*.d
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# CMake (only ignore build artifacts, not CMakeLists.txt in src/)
+build/**/CMakeCache.txt
+build/**/CMakeFiles/
+build/**/cmake_install.cmake
+build/**/Makefile
+install/**/CMakeCache.txt
+install/**/CMakeFiles/
+install/**/cmake_install.cmake
+
+# Gazebo
+.gazebo/
+
+# ROS
+*.bag
+*.bag.active
+
+# Environment
+.env
+*.local
+
+# System files
+Thumbs.db
+.directory
+
+# Documentation build
+docs/_build/
+docs/.doctrees/
+
+# Third-party dependencies (optional - uncomment if you want to ignore them)
+# src/turtlebot3_deps/
