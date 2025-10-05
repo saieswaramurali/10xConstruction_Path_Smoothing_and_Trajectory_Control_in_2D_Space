@@ -1,8 +1,8 @@
 #!/bin/bash
 
-################################################################################
+##############################################################################
 # Autonomous Navigation System - Setup Script
-################################################################################
+##############################################################################
 #
 # Description:
 #   This script automates the complete setup process for the autonomous
@@ -18,7 +18,7 @@
 #   - ROS 2 Humble
 #   - Python 3.10+
 #
-################################################################################
+##############################################################################
 
 set -e  # Exit on error
 
@@ -126,10 +126,6 @@ fi
 print_status "Sourcing workspace..."
 source "$WORKSPACE_DIR/install/setup.bash"
 
-# Make start script executable
-print_status "Making start_navigation.sh executable..."
-chmod +x "$WORKSPACE_DIR/start_navigation.sh"
-
 # Create convenience alias
 print_status "Setting up convenience commands..."
 if ! grep -q "alias smooth_nav=" ~/.bashrc; then
@@ -149,12 +145,16 @@ echo "     source ~/.bashrc"
 echo "     cd $WORKSPACE_DIR"
 echo "     source install/setup.bash"
 echo ""
-echo "  2. Start the navigation system:"
-echo "     ./start_navigation.sh"
+echo "  2. Launch the navigation system (2 terminals required):"
+echo ""
+echo "     Terminal 1:"
+echo "     ros2 launch robot_trajectory_generator complete_navigation.launch.py"
+echo ""
+echo "     Terminal 2:"
+echo "     ros2 run robot_trajectory_generator test_case_publisher"
 echo ""
 echo "  Or use the convenience command:"
 echo "     smooth_nav"
-echo "     ./start_navigation.sh"
 echo ""
 echo "================================================================================"
 echo ""

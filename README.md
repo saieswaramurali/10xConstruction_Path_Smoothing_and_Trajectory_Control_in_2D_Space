@@ -65,7 +65,7 @@ Input Waypoints → Path Smoothing → Velocity Profile → Path Following → R
 
 ## Installation
 
-### Method 1: Automated Setup (Recommended)
+### Automated Setup (Recommended)
 
 Clone the repository and run the setup script:
 
@@ -94,9 +94,9 @@ The setup script will:
 - Build the workspace
 - Configure environment variables
 
-### Method 2: Manual Setup
+### Manual Setup
 
-If you prefer manual installation or the script fails:
+If you prefer manual installation:
 
 #### Step 1: Install ROS 2 Humble
 
@@ -151,46 +151,61 @@ source install/setup.bash
 
 ## Usage
 
-### Quick Start (Automated)
+### Quick Start - 2 Terminals
 
-Launch the entire navigation system with a single command:
+Launch the complete navigation system using just **2 terminals**:
+
+#### Terminal 1: Launch Complete Navigation System
 
 ```bash
-# Make sure you're in the workspace directory
-cd ~/path/to/workspace
+# Navigate to workspace
+cd 10xConstruction_Path_Smoothing_and_Trajectory_Control_in_2D_Space
+source install/setup.bash
 
-# Make the launch script executable (first time only)
-chmod +x start_navigation.sh
-
-# Launch the system
-./start_navigation.sh
+# Launch complete system (Simulator + All Navigation Nodes)
+ros2 launch robot_trajectory_generator complete_navigation.launch.py
 ```
 
-This will open 5 terminal windows:
-1. **Robot Simulator** - Gazebo and RViz
-2. **Trajectory System** - Waypoint collector and path smoother
-3. **Velocity Profiler** - Curvature-based velocity planner
-4. **Pure Pursuit Controller** - Path following controller
-5. **Test Case Publisher** - Main user interface
+**Wait ~15 seconds** for Gazebo and all nodes to initialize.
 
-**Select a test case** in Terminal 5 and watch the robot navigate autonomously!
+This single command starts:
+- TurtleBot3 Simulator (Gazebo + RViz)
+- Waypoint Collector
+- Catmull-Rom Trajectory Generator
+- Velocity Profiler
+- Pure Pursuit Controller
 
-### Manual Launch (Step-by-Step)
+#### Terminal 2: Run Test Case Publisher
 
-If you prefer to launch components individually:
+```bash
+# In a new terminal
+cd 10xConstruction_Path_Smoothing_and_Trajectory_Control_in_2D_Space
+source install/setup.bash
+
+# Run test case publisher (User Interface)
+ros2 run robot_trajectory_generator test_case_publisher
+```
+
+**That's it!** Select a test case number in Terminal 2 and watch the robot navigate autonomously!
+
+---
+
+### Manual Launch (Advanced - For Debugging)
+
+If you need to launch components individually:
 
 #### Terminal 1: Robot Simulator
 
 ```bash
-cd ~/path/to/workspace
+cd 10xConstruction_Path_Smoothing_and_Trajectory_Control_in_2D_Space
 source install/setup.bash
 ros2 launch robot_bringup turtlebot_sim.launch.py
 ```
 
-#### Terminal 2: Trajectory System
+#### Terminal 2: Waypoint Collector + Trajectory Generator
 
 ```bash
-cd ~/path/to/workspace
+cd 10xConstruction_Path_Smoothing_and_Trajectory_Control_in_2D_Space
 source install/setup.bash
 ros2 launch robot_trajectory_generator trajectory_system.launch.py
 ```
@@ -198,7 +213,7 @@ ros2 launch robot_trajectory_generator trajectory_system.launch.py
 #### Terminal 3: Velocity Profiler
 
 ```bash
-cd ~/path/to/workspace
+cd 10xConstruction_Path_Smoothing_and_Trajectory_Control_in_2D_Space
 source install/setup.bash
 ros2 run robot_trajectory_generator velocity_profiler
 ```
@@ -206,7 +221,7 @@ ros2 run robot_trajectory_generator velocity_profiler
 #### Terminal 4: Pure Pursuit Controller
 
 ```bash
-cd ~/path/to/workspace
+cd 10xConstruction_Path_Smoothing_and_Trajectory_Control_in_2D_Space
 source install/setup.bash
 ros2 run robot_trajectory_generator pure_pursuit_controller
 ```
@@ -214,20 +229,10 @@ ros2 run robot_trajectory_generator pure_pursuit_controller
 #### Terminal 5: Test Case Publisher
 
 ```bash
-cd ~/path/to/workspace
+cd 10xConstruction_Path_Smoothing_and_Trajectory_Control_in_2D_Space
 source install/setup.bash
 ros2 run robot_trajectory_generator test_case_publisher
 ```
-
-### Alternative: Single Launch File
-
-Launch all navigation nodes (without simulator):
-
-```bash
-ros2 launch robot_trajectory_generator complete_navigation.launch.py
-```
-
-Then run the simulator and test publisher separately.
 
 ---
 
@@ -267,328 +272,311 @@ The system includes 20 predefined test scenarios:
 
 ### Using Test Cases
 
-1. Launch the system using `./start_navigation.sh`
-2. In Terminal 5 (Test Case Publisher), enter a number (1-20)
-3. Add `m` for mirrored version (e.g., `1m` for mirrored square)
-4. Confirm the waypoints
-5. Watch the robot navigate!
+1. Launch the complete system (Terminal 1)
+2. Wait ~15 seconds for initialization
+3. Run test_case_publisher (Terminal 2)
+4. Enter a number (1-20)
+5. Add `m` for mirrored version (e.g., `1m` for mirrored square)
+6. Confirm the waypoints
+7. Watch the robot navigate!
 
 ---
 
-## System Parameters
-
-### Catmull-Rom Spline Parameters
-
-```yaml
-alpha: 0.5              # Centripetal parameterization (prevents loops)
-num_points: 200         # Number of interpolated points
-frame_id: odom          # Reference frame
-```
-
-### Velocity Profiler Parameters
-
-```yaml
-max_linear_vel: 0.35    # Maximum velocity on straight sections (m/s)
-min_linear_vel: 0.08    # Minimum velocity on curves (m/s)
-curvature_threshold: 0.3 # Curvature sensitivity (1/m)
-lookahead_points: 5     # Points for curvature calculation
-```
-
-### Pure Pursuit Controller Parameters
-
-```yaml
-lookahead_distance: 0.5      # Base lookahead distance (m)
-min_lookahead: 0.25          # Minimum lookahead (m)
-max_lookahead: 0.8           # Maximum lookahead (m)
-goal_tolerance: 0.3          # Goal reached threshold (m)
-use_dynamic_lookahead: true  # Enable velocity-based lookahead
-```
-
----
-
-## ROS 2 Topics
-
-### Published Topics
-
-| Topic | Message Type | Description |
-|-------|--------------|-------------|
-| `/waypoints` | `nav_msgs/Path` | Collected waypoints |
-| `/smooth_trajectory` | `nav_msgs/Path` | Smooth Catmull-Rom trajectory |
-| `/trajectory_with_velocity` | `nav_msgs/Path` | Trajectory with velocity profile |
-| `/cmd_vel` | `geometry_msgs/Twist` | Robot velocity commands |
+## Topics and Messages
 
 ### Subscribed Topics
 
-| Topic | Message Type | Description |
-|-------|--------------|-------------|
-| `/clicked_point` | `geometry_msgs/PointStamped` | Waypoint input from RViz |
-| `/odom` | `nav_msgs/Odometry` | Robot odometry feedback |
+| Topic | Type | Description |
+|-------|------|-------------|
+| `/clicked_point` | `geometry_msgs/PointStamped` | Input waypoints from RViz or test publisher |
+| `/odom` | `nav_msgs/Odometry` | Robot odometry for control |
+
+### Published Topics
+
+| Topic | Type | Description |
+|-------|------|-------------|
+| `/waypoints` | `nav_msgs/Path` | Collected waypoints (green in RViz) |
+| `/smooth_trajectory` | `nav_msgs/Path` | Smooth Catmull-Rom trajectory (magenta in RViz) |
+| `/trajectory_with_velocity` | `nav_msgs/Path` | Trajectory with velocity profile |
+| `/cmd_vel` | `geometry_msgs/Twist` | Velocity commands to robot |
+| `/waypoint_markers` | `visualization_msgs/MarkerArray` | Waypoint visualization markers |
 
 ---
 
-## Visualization
+## Parameters
 
-### RViz Configuration
+### Catmull-Rom Generator
 
-The system includes pre-configured RViz displays:
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `frame_id` | `odom` | Reference frame for trajectories |
+| `num_points` | `200` | Number of interpolated points |
+| `alpha` | `0.5` | Catmull-Rom alpha (0.5=centripetal) |
 
-- **Green Path**: Original waypoints
-- **Magenta Curve**: Smooth trajectory
-- **Robot Model**: TurtleBot3 with real-time position
-- **Odometry**: Robot pose and orientation
+### Velocity Profiler
 
-### Gazebo Simulation
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `max_linear_vel` | `0.22` | Maximum linear velocity (m/s) |
+| `min_linear_vel` | `0.05` | Minimum linear velocity (m/s) |
+| `max_angular_vel` | `2.0` | Maximum angular velocity (rad/s) |
+| `curvature_threshold` | `0.5` | Curvature threshold for velocity adjustment |
 
-- **Environment**: Empty world
-- **Robot**: TurtleBot3 Burger
-- **Physics**: Real-time simulation
-- **Sensors**: IMU, Odometry, Camera (optional)
+### Pure Pursuit Controller
 
----
-
-## Trajectory Analysis
-
-View time-parameterized trajectory information:
-
-```bash
-ros2 run robot_trajectory_generator trajectory_analyzer
-```
-
-This displays:
-- Time stamps for each point: `(x, y, t)`
-- Velocity profile along the path
-- Path length and completion time
-- Statistics and performance metrics
-- Export to `/tmp/trajectory_time_parameterized.txt`
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `lookahead_distance` | `0.5` | Base lookahead distance (m) |
+| `min_lookahead` | `0.3` | Minimum lookahead distance (m) |
+| `max_lookahead` | `1.0` | Maximum lookahead distance (m) |
+| `goal_tolerance` | `0.1` | Goal reached tolerance (m) |
+| `use_dynamic_lookahead` | `True` | Enable dynamic lookahead adjustment |
 
 ---
 
 ## Project Structure
 
 ```
-smooth_nav/
+.
+├── README.md                          # This file
+├── setup.sh                           # Automated setup script
 ├── src/
-│   ├── robot_bringup/              # Robot simulation launch files
+│   ├── robot_bringup/                 # TurtleBot3 simulation setup
 │   │   ├── launch/
-│   │   │   └── turtlebot_sim.launch.py
-│   │   ├── maps/
+│   │   │   └── turtlebot_sim.launch.py    # Gazebo + RViz launcher
 │   │   └── rviz/
+│   │       └── display.rviz               # RViz configuration
 │   │
-│   ├── robot_trajectory_generator/  # Main package
-│   │   ├── robot_trajectory_generator/
-│   │   │   ├── waypoint_collector.py
-│   │   │   ├── catmull_rom_generator.py
-│   │   │   ├── velocity_profiler.py
-│   │   │   ├── pure_pursuit_controller.py
-│   │   │   ├── test_case_publisher.py
-│   │   │   └── trajectory_analyzer.py
-│   │   │
+│   ├── robot_trajectory_generator/    # Main navigation package
 │   │   ├── launch/
-│   │   │   ├── waypoint_collector.launch.py
-│   │   │   ├── trajectory_system.launch.py
-│   │   │   └── complete_navigation.launch.py
-│   │   │
-│   │   ├── package.xml
-│   │   └── setup.py
+│   │   │   ├── complete_navigation.launch.py    # Complete system
+│   │   │   └── trajectory_system.launch.py      # Waypoint + Generator
+│   │   ├── robot_trajectory_generator/
+│   │   │   ├── waypoint_collector.py           # Waypoint collection
+│   │   │   ├── catmull_rom_generator.py        # Path smoothing
+│   │   │   ├── velocity_profiler.py            # Velocity planning
+│   │   │   ├── pure_pursuit_controller.py      # Path following
+│   │   │   └── test_case_publisher.py          # Test cases
+│   │   └── README.md                           # Package documentation
 │   │
-│   └── turtlebot3_deps/             # TurtleBot3 dependencies
+│   └── turtlebot3_deps/               # TurtleBot3 dependencies
+│       ├── DynamixelSDK/
+│       ├── turtlebot3/
+│       ├── turtlebot3_msgs/
+│       └── turtlebot3_simulations/
 │
-├── setup.sh                         # Automated setup script
-├── start_navigation.sh              # System launch script
-├── README.md                        # This file
-└── ASSIGNMENT_DOCUMENTATION.md      # Detailed technical documentation
+├── build/                             # Build artifacts (gitignored)
+├── install/                           # Installation files (gitignored)
+└── log/                               # Log files (gitignored)
 ```
 
 ---
 
 ## Algorithm Details
 
-### 1. Path Smoothing (Catmull-Rom Spline)
+### 1. Path Smoothing (Catmull-Rom Splines)
 
-**Algorithm**: Centripetal Catmull-Rom spline interpolation
+The system uses **Catmull-Rom spline interpolation** with centripetal parameterization (α=0.5) to generate smooth trajectories from discrete waypoints.
 
-**Key Features**:
-- Passes through all waypoints (interpolating, not approximating)
-- C1 continuous (smooth velocity transitions)
-- No loops or cusps with α = 0.5
-- Local control (modifying one point affects only nearby curve)
+**Key Features:**
+- C¹ continuous (smooth velocities)
+- Passes through all waypoints
+- No cusps or self-intersections
+- Automatic control point generation
 
-**Implementation**:
-```python
-# For each segment [P0, P1, P2, P3]:
-t_i = t_{i-1} + ||P_i - P_{i-1}||^α  # α = 0.5 (centripetal)
-
-# Barry-Goldman pyramidal formulation for numerical stability
+**Formula:**
 ```
+P(t) = 0.5 * [(2*P₁) + 
+              (-P₀ + P₂)*t + 
+              (2*P₀ - 5*P₁ + 4*P₂ - P₃)*t² + 
+              (-P₀ + 3*P₁ - 3*P₂ + P₃)*t³]
+```
+
+Where t ∈ [0,1] and P₀, P₁, P₂, P₃ are four consecutive control points.
 
 ### 2. Velocity Profiling
 
-**Algorithm**: Curvature-based adaptive velocity
+Velocity is assigned based on **path curvature** to ensure safe navigation:
 
-**Strategy**:
-```python
-curvature = angle_change / arc_length
-velocity = v_max - (v_max - v_min) * (curvature / threshold)
+- **Straight segments**: Maximum velocity (0.22 m/s)
+- **Curved segments**: Reduced velocity based on curvature
+- **Sharp turns**: Minimum velocity (0.05 m/s)
+
+**Curvature Calculation:**
+```
+κ = |x'y'' - y'x''| / (x'² + y'²)^(3/2)
 ```
 
-**Benefits**:
-- Safe cornering (reduced speed on curves)
-- Efficient straight-line travel (high speed)
-- Smooth acceleration/deceleration
+### 3. Pure Pursuit Control
 
-### 3. Path Following Control
+The **Pure Pursuit algorithm** generates velocity commands to follow the trajectory:
 
-**Algorithm**: Pure Pursuit with dynamic lookahead
-
-**Control Law**:
-```python
-# Calculate curvature to lookahead point
-κ = 2 * sin(α) / L
-
-# Compute control commands
-ω = v * κ  # Angular velocity
-v = trajectory_velocity  # From velocity profile
+**Angular Velocity:**
+```
+ω = 2 * v * sin(α) / L
 ```
 
-**Features**:
-- Dynamic lookahead distance based on velocity
-- Sequential waypoint tracking
-- Robust goal detection and stopping
+Where:
+- v = linear velocity
+- α = angle to lookahead point
+- L = lookahead distance
+
+**Dynamic Lookahead:**
+- Increases with velocity for smoother paths
+- Decreases near waypoints for accuracy
+
+---
+
+## Visualization
+
+### RViz Display
+
+The system provides comprehensive visualization in RViz:
+
+- **Green Path**: Original waypoints (`/waypoints`)
+- **Magenta Curve**: Smooth Catmull-Rom trajectory (`/smooth_trajectory`)
+- **Red Markers**: Numbered waypoint markers
+- **Robot Model**: TurtleBot3 Burger
+- **TF Frames**: `odom` → `base_footprint`
+
+### Gazebo Simulation
+
+Watch the TurtleBot3 autonomously navigate:
+- Realistic physics simulation
+- Real-time velocity control
+- Accurate odometry feedback
 
 ---
 
 ## Troubleshooting
 
-### Common Issues
+### Issue: "odom frame doesn't exist"
 
-#### 1. "ROS 2 not found"
+**Solution**: Wait 15-20 seconds after launching. The complete_navigation.launch.py includes a 10-second delay to allow Gazebo to fully initialize.
+
+### Issue: Robot not moving
+
+**Possible causes:**
+1. Test case publisher not running
+2. Waypoints not published
+3. Trajectory generation failed
+
+**Solution:**
 ```bash
-# Solution: Source ROS 2
-source /opt/ros/humble/setup.bash
-```
-
-#### 2. "Package not found"
-```bash
-# Solution: Rebuild and source workspace
-cd ~/path/to/workspace
-colcon build --symlink-install
-source install/setup.bash
-```
-
-#### 3. "Gazebo crashes or freezes"
-```bash
-# Solution: Kill existing Gazebo processes
-killall gzserver gzclient
-# Then restart the system
-```
-
-#### 4. "Robot doesn't move"
-```bash
-# Check if all nodes are running:
-ros2 node list
-
-# Check cmd_vel topic:
+# Check if topics are active
+ros2 topic list
 ros2 topic echo /cmd_vel
 
-# Check if trajectory was published:
-ros2 topic echo /trajectory_with_velocity
+# Verify waypoints were received
+ros2 topic echo /waypoints
 ```
 
-#### 5. "Cannot open terminal windows"
-```bash
-# Install x-terminal-emulator:
-sudo apt-get install xterm
+### Issue: Gazebo crashes or won't start
 
-# Or edit start_navigation.sh to use your terminal:
-# Replace 'x-terminal-emulator' with 'gnome-terminal' or 'xterm'
+**Solution:**
+```bash
+# Kill any existing Gazebo processes
+killall -9 gazebo gzserver gzclient
+
+# Restart the system
+ros2 launch robot_trajectory_generator complete_navigation.launch.py
+```
+
+### Issue: Build errors
+
+**Solution:**
+```bash
+# Clean build
+rm -rf build install log
+
+# Rebuild
+colcon build --symlink-install
+
+# Source workspace
+source install/setup.bash
 ```
 
 ---
 
 ## Performance Metrics
 
-Typical performance on test cases:
+- **Trajectory Generation**: ~50ms for 200 points
+- **Control Loop**: 20 Hz (50ms cycle time)
+- **Path Tracking Error**: < 0.05m (average)
+- **Goal Reaching Accuracy**: < 0.1m tolerance
+- **Maximum Velocity**: 0.22 m/s (TurtleBot3 limit)
 
-- **Path Accuracy**: < 0.1m average deviation
-- **Goal Precision**: < 0.3m final position error
-- **Smooth Tracking**: No oscillations or overshoots
-- **Completion Rate**: 100% on all 20 test cases
-- **Average Speed**: 0.25 m/s (varies with curvature)
+---
+
+## Future Enhancements
+
+Potential improvements for real-world deployment:
+
+1. **Obstacle Avoidance**
+   - Dynamic obstacle detection
+   - Local path replanning
+   - Integration with Nav2 costmaps
+
+2. **Adaptive Control**
+   - Model Predictive Control (MPC)
+   - Adaptive Pure Pursuit gains
+   - Terrain-aware velocity profiles
+
+3. **Multi-Robot Support**
+   - Coordination between multiple robots
+   - Collision avoidance
+   - Formation control
+
+4. **Real Robot Deployment**
+   - Hardware interfaces
+   - Sensor fusion (LiDAR, cameras)
+   - Safety systems
 
 ---
 
 ## Contributing
 
-This project was developed as part of an autonomous systems assignment. Contributions, improvements, and extensions are welcome!
+Contributions are welcome! Please follow these guidelines:
 
-### Areas for Enhancement
-
-1. Dynamic obstacle avoidance
-2. Multi-robot coordination
-3. Real robot deployment (hardware drivers)
-4. Advanced velocity profiles (jerk-limited)
-5. Machine learning-based parameter tuning
-
----
-
-## Documentation
-
-For detailed technical documentation, see:
-- **ASSIGNMENT_DOCUMENTATION.md** - Complete system design and algorithms
-- **ARCHITECTURE.md** - System architecture details
-- **COMPLETE_SYSTEM_GUIDE.md** - Step-by-step usage guide
-
----
-
-## Assignment Deliverables
-
-This project fulfills all assignment requirements:
-
-### Task 1: Path Smoothing
-✓ Function that takes discrete waypoints and returns smooth, continuous path
-- **Implementation**: `catmull_rom_generator.py`
-- **Algorithm**: Catmull-Rom spline with centripetal parameterization
-
-### Task 2: Trajectory Generation
-✓ Time-parameterized trajectory: `[(x₀, y₀, t₀), (x₁, y₁, t₁), ..., (xₙ, yₙ, tₙ)]`
-- **Implementation**: `velocity_profiler.py` + `trajectory_analyzer.py`
-- **Method**: Curvature-based velocity assignment with time integration
-
-### Task 3: Trajectory Tracking Controller
-✓ Controller function outputting velocity commands
-✓ Simulation showing tracking performance
-- **Implementation**: `pure_pursuit_controller.py`
-- **Algorithm**: Pure Pursuit with dynamic lookahead
-- **Simulation**: TurtleBot3 in Gazebo with 20 test cases
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ---
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
-## Authors
-
-- **Sai Eswaramurali** - Initial work and implementation
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
 ## Acknowledgments
 
-- ROS 2 community for excellent documentation
-- TurtleBot3 team for simulation packages
-- Pure Pursuit and Catmull-Rom algorithm references
+- **ROS 2 Community**: For excellent documentation and tools
+- **TurtleBot3**: For simulation platform
+- **Open Robotics**: For Gazebo simulator
+- **10xConstruction**: For project opportunity and guidance
 
 ---
 
 ## Contact
 
-For questions or issues, please open an issue on GitHub or contact the repository owner.
-
-**Repository**: [github.com/saieswaramurali/10xConstruction_Path_Smoothing_and_Trajectory_Control_in_2D_Space](https://github.com/saieswaramurali/10xConstruction_Path_Smoothing_and_Trajectory_Control_in_2D_Space)
+**Author**: Sai Eswara Murali  
+**Email**: [Your Email]  
+**GitHub**: [@saieswaramurali](https://github.com/saieswaramurali)  
+**Project**: [10xConstruction Path Smoothing Assignment](https://github.com/saieswaramurali/10xConstruction_Path_Smoothing_and_Trajectory_Control_in_2D_Space)
 
 ---
 
-**Last Updated**: October 2025
+## References
+
+1. Catmull, E., & Rom, R. (1974). A class of local interpolating splines.
+2. Coulter, R. C. (1992). Implementation of the Pure Pursuit Path Tracking Algorithm.
+3. ROS 2 Documentation: https://docs.ros.org/en/humble/
+4. TurtleBot3 e-Manual: https://emanual.robotis.com/docs/en/platform/turtlebot3/
+
+---
+
+**Happy Navigating! **

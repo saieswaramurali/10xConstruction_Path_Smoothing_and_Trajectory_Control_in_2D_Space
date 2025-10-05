@@ -71,18 +71,30 @@ Dependencies:
     - nav_msgs, geometry_msgs
     - TurtleBot3 simulation (robot_bringup package)
 
-Author: Robot Trajectory Generator Team
+Author: Sai
 Date: 2025
 """
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, LogInfo
+from launch.actions import DeclareLaunchArgument, LogInfo, IncludeLaunchDescription, TimerAction, SetEnvironmentVariable
 from launch.substitutions import LaunchConfiguration
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
+from ament_index_python.packages import get_package_share_directory
+import os
 
 
 def generate_launch_description():
     """Generate launch description for complete navigation system"""
+    
+    # Get package directories
+    robot_bringup_dir = get_package_share_directory('robot_bringup')
+    
+    # Set TURTLEBOT3_MODEL environment variable
+    set_turtlebot3_model = SetEnvironmentVariable(
+        name='TURTLEBOT3_MODEL',
+        value='burger'
+    )
     
     # Declare launch arguments
     frame_id_arg = DeclareLaunchArgument(
@@ -120,11 +132,16 @@ def generate_launch_description():
         msg="\n" + "="*80 + "\n" +
             "  [LAUNCH] COMPLETE NAVIGATION SYSTEM LAUNCHED\n" +
             "="*80 + "\n" +
-            "  Pipeline:\n" +
+            "  Components:\n" +
+            "  0. TurtleBot3 Simulator → Gazebo + RViz (starting now...)\n" +
             "  1. Waypoint Collector → Collects waypoints from /clicked_point\n" +
             "  2. Catmull-Rom Generator → Generates smooth trajectory\n" +
             "  3. Velocity Profiler → Adds velocity based on curvature\n" +
             "  4. Pure Pursuit Controller → Follows path, publishes /cmd_vel\n" +
+            "="*80 + "\n" +
+            "  [INFO] Navigation nodes will start in 15 seconds...\n" +
+            "  [INFO] This allows Gazebo and the robot to fully initialize.\n" +
+            "  [INFO] Please wait for Gazebo window to appear and robot to spawn.\n" +
             "="*80 + "\n" +
             "  [INFO] To send waypoints, run in ANOTHER terminal:\n" +
             "     ros2 run robot_trajectory_generator test_case_publisher\n" +
@@ -141,6 +158,13 @@ def generate_launch_description():
             "  - Magenta curve: Smooth trajectory\n" +
             "  - Robot follows the path autonomously!\n" +
             "="*80 + "\n"
+    )
+    
+    # Launch TurtleBot3 Simulator (Gazebo + RViz)
+    turtlebot_sim = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(robot_bringup_dir, 'launch', 'turtlebot_sim.launch.py')
+        )
     )
     
     # Node 1: Waypoint Collector
@@ -200,6 +224,9 @@ def generate_launch_description():
     )
     
     return LaunchDescription([
+        # Set environment
+        set_turtlebot3_model,
+        
         # Arguments
         frame_id_arg,
         num_points_arg,
@@ -210,9 +237,17 @@ def generate_launch_description():
         # Info
         info_message,
         
-        # All nodes
-        waypoint_collector,
-        catmull_rom_generator,
-        velocity_profiler,
-        pure_pursuit_controller,
+        # TurtleBot3 Simulator (starts first)
+        turtlebot_sim,
+        
+        # Delay navigation nodes to allow simulator to fully initialize
+        TimerAction(
+            period=15.0,  # Wait 15 seconds for Gazebo and robot to spawn
+            actions=[
+                waypoint_collector,
+                catmull_rom_generator,
+                velocity_profiler,
+                pure_pursuit_controller,
+            ]
+        ),
     ])
