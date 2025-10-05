@@ -86,7 +86,7 @@ rosdep install --from-paths src --ignore-src -r -y
 
 # Install Python dependencies
 print_status "Installing Python dependencies..."
-pip3 install numpy --upgrade
+pip3 install --upgrade numpy scipy
 
 # Check for Gazebo
 print_status "Checking Gazebo installation..."
