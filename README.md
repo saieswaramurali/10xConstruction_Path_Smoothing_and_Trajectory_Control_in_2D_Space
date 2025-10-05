@@ -564,7 +564,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Contact
 
 **Author**: Sai Eswara Murali  
-**Email**: [Your Email]  
+**Email**: [saimurali2005@gmail.com]  
 **GitHub**: [@saieswaramurali](https://github.com/saieswaramurali)  
 **Project**: [10xConstruction Path Smoothing Assignment](https://github.com/saieswaramurali/10xConstruction_Path_Smoothing_and_Trajectory_Control_in_2D_Space)
 
